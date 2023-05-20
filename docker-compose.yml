@@ -1,0 +1,256 @@
+version: "3.2"
+services:
+  radarr:
+    container_name: radarr
+    image: cr.hotio.dev/hotio/radarr:latest
+    restart: unless-stopped
+    logging:
+      driver: json-file
+    ports:
+      - 7878:7878
+    environment:
+      - PUID=1001
+      - PGID=1001
+      - TZ=America/Guatemala
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /mnt/vol1/docker/appdata/radarr:/config
+      - /mnt/vol1/data:/data
+  sonarr:
+    container_name: sonarr
+    image: cr.hotio.dev/hotio/sonarr:v4
+    restart: unless-stopped
+    logging:
+      driver: json-file
+    ports:
+      - 8989:8989
+    environment:
+      - PUID=1001
+      - PGID=1001
+      - TZ=America/Guatemala
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /mnt/vol1/docker/appdata/sonarr:/config
+      - /mnt/vol1/data:/data
+  bazarr:
+    container_name: bazarr
+    image: cr.hotio.dev/hotio/bazarr:latest
+    restart: unless-stopped
+    logging:
+      driver: json-file
+    ports:
+      - 6767:6767
+    environment:
+      - PUID=1001
+      - PGID=1001
+      - TZ=America/Guatemala
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /mnt/vol1/docker/appdata/bazarr:/config
+      - /mnt/vol1/data/media:/data/media
+  plex:
+    container_name: plex
+    image: lscr.io/linuxserver/plex:latest
+    restart: unless-stopped
+    ports:
+      - 32400:32400/tcp
+      - 8324:8324/tcp
+      - 32469:32469/tcp
+      - 1900:1900/udp
+      - 32410:32410/udp
+      - 32412:32412/udp
+      - 32413:32413/udp
+      - 32414:32414/udp
+    environment:
+      - PGID=1001
+      - PUID=1001
+      - TZ=America/Guatemala
+      #- PLEX_CLAIM=claim-MExdud6P31kLykcqXHFa
+      #- ADVERTISE_IP=http://192.9.131.64:32400/
+    hostname: PlexServer
+    volumes:
+      - /mnt/vol1/docker/appdata/plex:/config
+      - /mnt/vol1/data/media:/data/media:ro
+      - /dev/shm:/transcode
+  #overseerr:
+   # image: sctx/overseerr:latest
+   # container_name: overseerr
+   # environment:
+   #   - LOG_LEVEL=debug
+   #   - TZ=America/Guatemala
+   #   - PORT=5055
+   #   - PGID=1001
+   #   - PUID=1001
+   # ports:
+   #   - 5055:5055
+   # volumes:
+   #   - /mnt/vol1/docker/appdata/overseerr:/app/config
+   # restart: unless-stopped
+  qbittorrent:
+    image: lscr.io/linuxserver/qbittorrent:latest
+    container_name: qbittorrent
+    environment:
+      - PUID=1001
+      - PGID=1001
+      - UMASK=002
+      - TZ=America/Guatemala
+      - WEBUI_PORT=8080
+    volumes:
+      - /mnt/vol1/docker/appdata/qbittorrent-config:/config
+      - /mnt/vol1/data/torrents:/data/torrents
+    ports:
+      - "8080:8080"
+      - "52548:52548"
+      - "52548:52548/udp"
+    restart: unless-stopped
+  prowlarr:
+    image: lscr.io/linuxserver/prowlarr:develop
+    container_name: prowlarr
+    environment:
+      - PUID=1001
+      - PGID=1001
+      - UMASK=002
+      - TZ=America/Guatemala
+    volumes:
+      - /mnt/vol1/docker/appdata/prowlarr:/config
+    ports:
+      - "9696:9696"
+    restart: unless-stopped
+  kavita:
+    image: kizaing/kavita:latest    # Change latest to nightly for latest develop builds (can't go back to stable)
+    container_name: kavita
+    volumes:
+      - /mnt/vol1/data/books:/data/books            #
+      - /mnt/vol1/docker/appdata/kavita:/kavita/config     # Change './data if you want to have the config files in a different place.
+    environment:
+      - TZ=America/Guatemala
+    ports:
+      - "5000:5000" # Change the public port (the first 5000) if you have conflicts with other services
+    restart: unless-stopped
+  jellyfin:
+    image: jellyfin/jellyfin
+    container_name: jellyfin
+    #user: 1001:1001
+    volumes:
+      - /mnt/vol1/docker/appdata/jellyfin:/config
+      - /mnt/vol1/docker/appdata/jellyfin-cache:/cache
+      - /mnt/vol1/docker/appdata/jellyfin-web/config.json:/jellyfin/jellyfin-web/config.json
+      - /mnt/vol1/data/media:/data/media
+      - /dev/shm:/transcode
+    restart: 'unless-stopped'
+    environment:
+      - TZ=America/Guatemala
+      #- JELLYFIN_PublishedServerUrl=http://192.9.131.64
+    ports:
+      - 8096:8096
+  #autobrr:
+  #  container_name: autobrr
+   # image: ghcr.io/autobrr/autobrr:latest
+    #restart: unless-stopped
+    #logging:
+    #  driver: json-file
+    #  options:
+    #    max-file: ${DOCKERLOGGING_MAXFILE}
+    #    max-size: ${DOCKERLOGGING_MAXSIZE}
+    #user: 1001:1001
+    #environment:
+    #  - TZ=America/Guatemala
+    #volumes:
+     # - /mnt/vol1/docker/appdata/autobrr/config:/config
+    #ports:
+    #  - 7474:7474
+
+  audiobookshelf:
+    container_name: audiobookshelf
+    image: ghcr.io/advplyr/audiobookshelf:latest
+    restart: unless-stopped
+    ports:
+      - 13378:80
+    volumes:
+      - /mnt/vol1/data/media/audiobooks:/media/audiobooks:ro
+      - /mnt/vol1/docker/appdata/audiobookshelf/config:/config
+      - /mnt/vol1/docker/appdata/audiobookshelf/metadata:/metadata
+  readarr:
+    container_name: readarr
+    image: cr.hotio.dev/hotio/readarr
+    restart: unless-stopped
+    ports:
+      - "8787:8787"
+    environment:
+      - PUID=1001
+      - PGID=1001
+      - UMASK=002
+      - TZ=America/Guatemala
+    volumes:
+      - /mnt/vol1/docker/appdata/readarr:/config
+      - /mnt/vol1/data:/data
+
+  #wireguard:
+    #image: lscr.io/linuxserver/wireguard:latest
+    #container_name: wireguard
+    #cap_add:
+    #  - NET_ADMIN
+    #environment:
+    #  - PUID=1001
+    #  - PGID=1001
+    #  - TZ=America/Guatemala
+    #  - SERVERURL=auto #optional
+    #  - SERVERPORT=51820 #optional
+    #  - PEERS=1 #optional
+    #  - PEERDNS=1.1.1.1 #optional
+    #  - INTERNAL_SUBNET=10.13.13.0 #optional
+    #  - ALLOWEDIPS=0.0.0.0/0 #optional
+    #  - PERSISTENTKEEPALIVE_PEERS= #optional
+    #  - LOG_CONFS=true #optional
+    #volumes:
+    #  - /mnt/vol1/docker/appdata/wireguard:/config
+    #ports:
+    #  - 51820:51820/udp
+    #sysctls:
+    #  - net.ipv4.conf.all.src_valid_mark=1
+    #restart: unless-stopped
+  jellyseerr:
+    image: fallenbagel/jellyseerr:latest
+    container_name: jellyseerr
+    environment:
+      - LOG_LEVEL=debug
+      - TZ=America/Guatemala
+    ports:
+      - 5056:5055
+    volumes:
+      - /mnt/vol1/docker/appdata/jellyseerr:/app/config
+    restart: unless-stopped
+  homepage:
+    image: ghcr.io/benphelps/homepage:latest
+    restart: unless-stopped
+    container_name: homepage
+    ports:
+      - 3000:3000
+    volumes:
+      - /mnt/vol1/docker/appdata/homepage:/app/config # Make sure your local config directory exists
+      - /mnt/vol1:/mnt/vol1:ro
+  dockerproxy:
+    image: ghcr.io/tecnativa/docker-socket-proxy:latest
+    container_name: dockerproxy
+    environment:
+        - CONTAINERS=1 # Allow access to viewing containers
+        - POST=0 # Disallow any POST operations (effectively read-only)
+    ports:
+        - 2375:2375
+    volumes:
+        - /var/run/docker.sock:/var/run/docker.sock:ro # Mounted as read-only
+    restart: unless-stopped
+  filebrowser:
+    image: filebrowser/filebrowser:s6
+    container_name: filebrowser
+    restart: unless-stopped
+    environment:
+      - PUID=1001
+      - PGID=1001
+    ports:
+      - 8070:80
+    volumes:
+      - /mnt/vol1/docker/appdata/filebrowser/filebrowser.db:/database/filebrowser.db
+      - /mnt/vol1/docker/appdata/filebrowser/settings.json:/config/settings.json
+      - /home/ubuntu:/srv
+      - /mnt/vol1:/srv/mnt:ro
